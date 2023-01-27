@@ -29,22 +29,21 @@ class MultiplicationLayer(Layer):
 x_train = np.reshape([[0, 0], [0, 1], [1, 0], [1, 1]], (4, 2, 1))
 y_train = np.reshape([[0], [1], [1], [0]], (4, 1, 1))
 
-layers: list[Layer] = [
-    Dense(2, 3, initializer=RandomUniform(), optimizer=lambda: Momentum()),
-    Tanh(),
-    Dense(3, 1, initializer=RandomUniform(), optimizer=lambda: Momentum()),
-    Tanh(),
-    MultiplicationLayer()
-]
 
+dense1 = Dense(2, 3, initializer=RandomUniform(), optimizer=lambda: Momentum())
+activation1 = Tanh()
+dense2 = Dense(3, 1, initializer=RandomUniform(), optimizer=lambda: Momentum())
+activation2 = Tanh()
+mult = MultiplicationLayer()
 
-layers[0].wire(layers[1])
-layers[1].wire(layers[2])
-layers[2].wire(layers[3])
-layers[3].wire(layers[4], 'a')
-layers[2].wire(layers[4], 'b')
+dense1.wire(activation1)
+activation1.wire(dense2)
+dense2.wire(activation2)
+# split
+activation2.wire(mult, 'a')
+dense2.wire(mult, 'b')
 
-network = Network(layers)
+network = Network([dense1, activation1, dense2, activation2, mult])
 
 network.fit(x_train, y_train, MSE(), 1000)
 print(network.run_all(x_train))
