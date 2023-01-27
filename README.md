@@ -2,7 +2,7 @@
 
 **N**ot **E**fficient but **G**reat to **L**earn **N**eural **N**etwork - Graph Computation
 
-# Regular sequential model
+# Sequential model
 
 ```python
 import numpy as np
