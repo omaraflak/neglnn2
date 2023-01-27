@@ -9,7 +9,7 @@ from neglnn.activations.softmax import Softmax
 from neglnn.losses.mse import MSE
 from neglnn.initializers.xavier_normal import XavierNormal
 from neglnn.optimizers.sgd import SGD
-from neglnn.network.network import Network, Block
+from neglnn.network.network import Network
 
 def load_data(limit: int):
     (x_train, y_train), (x_test, y_test) = mnist.load_data()
@@ -24,14 +24,14 @@ def load_data(limit: int):
 
     return x_train[:limit], y_train[:limit], x_test, y_test
 
-network = Network([
-    Block(Flatten((28, 28))),
-    Block(Dense(784, 50), XavierNormal(), lambda: SGD(0.1)),
-    Block(Tanh()),
-    Block(Dense(50, 20), XavierNormal(), lambda: SGD(0.1)),
-    Block(Tanh()),
-    Block(Dense(20, 10), XavierNormal(), lambda: SGD(0.1)),
-    Block(Softmax())
+network = Network.sequential([
+    Flatten((28, 28)),
+    Dense(784, 50, initializer=XavierNormal(), optimizer=lambda: SGD(0.1)),
+    Tanh(),
+    Dense(50, 20, initializer=XavierNormal(), optimizer=lambda: SGD(0.1)),
+    Tanh(),
+    Dense(20, 10, initializer=XavierNormal(), optimizer=lambda: SGD(0.1)),
+    Softmax()
 ])
 
 x_train, y_train, x_test, y_test = load_data(1000)

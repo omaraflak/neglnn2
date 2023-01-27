@@ -1,29 +1,43 @@
 import numpy as np
-from neglnn.layers.layer import Layer, BackwardState
+from neglnn.layers.layer import Layer
 from neglnn.layers.conv_unit import ConvUnit
-from neglnn.initializers.initializer import Initializer
-from neglnn.utils.types import Array, Shape3
+from neglnn.utils.types import Array, Shape3, InputKey
 
 class Conv(Layer):
-    def __init__(self, input_shape: Shape3, kernel_size: int, depth: int):
-        self.conv_units = [ConvUnit(input_shape, kernel_size) for _ in range(depth)]
+    def __init__(self, input_shape: Shape3, kernel_size: int, depth: int, **kwargs):
+        self.conv_units = [
+            ConvUnit(input_shape, kernel_size, visible_to_graph=False, **kwargs)
+            for _ in range(depth)
+        ]
         height, width = self.conv_units[0].output_shape
-        super().__init__(input_shape, (depth, height, width), trainable=True)
+        super().__init__(input_shape, (depth, height, width), trainable=True, **kwargs)
 
-    def on_initializer(self, initializer: Initializer):
+    def initialize(self):
         for unit in self.conv_units:
-            unit.on_initializer(initializer)
-        self._parameters = tuple(x for unit in self.conv_units for x in unit.parameters())
+            unit.initialize()
 
-    def forward(self, input: Array) -> Array:
-        return np.array([unit.forward(input) for unit in self.conv_units])
+        self._parameters = [
+            x 
+            for unit in self.conv_units
+            for x in unit.parameters()
+        ]
 
-    def backward(self, output_gradient: Array) -> BackwardState:
-        back = [unit.backward(grad) for unit, grad in zip(self.conv_units, output_gradient)]
-        return BackwardState(
-            np.sum([b.input_gradient for b in back], axis=0),
-            tuple(grad for b in back for grad in b.parameter_gradients)
-        )
-
-    def parameters(self) -> tuple[Array, ...]:
+    def parameters(self) -> list[Array]:
         return self._parameters
+
+    def forward(self, inputs: dict[InputKey, Array]) -> Array:
+        return np.array([unit.forward(inputs) for unit in self.conv_units])
+
+    def input_gradient(self, output_gradient: Array) -> dict[InputKey, Array]:
+        input_gradients = [
+            unit.input_gradient(grad)[Layer.SINGLE_INPUT]
+            for unit, grad in zip(self.conv_units, output_gradient)
+        ]
+        return {Layer.SINGLE_INPUT: np.sum(input_gradients, axis=0)}
+
+    def parameters_gradient(self, output_gradient: Array) -> list[Array]:
+        return [
+            gradient
+            for unit, grad in zip(self.conv_units, output_gradient)
+            for gradient in unit.parameters_gradient(grad)
+        ]

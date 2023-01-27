@@ -1,16 +1,16 @@
-from neglnn.layers.layer import Layer, BackwardState
-from neglnn.utils.types import Array
+from neglnn.layers.layer import Layer
+from neglnn.utils.types import Array, InputKey
 
 class Activation(Layer):
     def call(self, x: Array) -> Array:
-        raise NotImplementedError
+        raise NotImplementedError()
 
     def prime(self, x: Array) -> Array:
-        raise NotImplementedError
+        raise NotImplementedError()
 
-    def forward(self, input: Array) -> Array:
-        self.input = input
-        return self.call(input)
+    def forward(self, inputs: dict[InputKey, Array]) -> Array:
+        self.input = inputs[Layer.SINGLE_INPUT]
+        return self.call(self.input)
 
-    def backward(self, output_gradient: Array) -> BackwardState:
-        return BackwardState(output_gradient * self.prime(self.input))
+    def input_gradient(self, output_gradient: Array) -> dict[InputKey, Array]:
+        return {Layer.SINGLE_INPUT: output_gradient * self.prime(self.input)}

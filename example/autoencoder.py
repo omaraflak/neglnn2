@@ -8,7 +8,7 @@ from neglnn.activations.tanh import Tanh
 from neglnn.losses.mse import MSE
 from neglnn.initializers.xavier_normal import XavierNormal
 from neglnn.optimizers.momentum import Momentum
-from neglnn.network.network import Network, Block
+from neglnn.network.network import Network
 
 def load_data(limit: int):
     (x_train, _), (x_test, _) = mnist.load_data()
@@ -16,17 +16,17 @@ def load_data(limit: int):
     x_test = x_test.astype('float32') / 255
     return x_train[:limit], x_test
 
-network = Network([
-    Block(Reshape((28, 28), (28 * 28, 1))),
-    Block(Dense(28 * 28, 30), XavierNormal(), lambda: Momentum(0.1)),
-    Block(Tanh()),
-    Block(Dense(30, 16), XavierNormal(), lambda: Momentum(0.1)),
-    Block(Tanh()),
-    Block(Dense(16, 30), XavierNormal(), lambda: Momentum(0.1)),
-    Block(Tanh()),
-    Block(Dense(30, 28 * 28), XavierNormal(), lambda: Momentum(0.1)),
-    Block(Tanh()),
-    Block(Reshape((28 * 28, 1), (28, 28)))
+network = Network.sequential([
+    Reshape((28, 28), (28 * 28, 1)),
+    Dense(28 * 28, 30, initializer=XavierNormal(), optimizer=lambda: Momentum(0.1)),
+    Tanh(),
+    Dense(30, 16, initializer=XavierNormal(), optimizer=lambda: Momentum(0.1)),
+    Tanh(),
+    Dense(16, 30, initializer=XavierNormal(), optimizer=lambda: Momentum(0.1)),
+    Tanh(),
+    Dense(30, 28 * 28, initializer=XavierNormal(), optimizer=lambda: Momentum(0.1)),
+    Tanh(),
+    Reshape((28 * 28, 1), (28, 28))
 ])
 
 x_train, x_test = load_data(1000)
