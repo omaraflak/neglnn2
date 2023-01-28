@@ -6,6 +6,31 @@ from neglnn.network.state import State
 from neglnn.utils.types import Array, InputKey
 
 class Network:
+    @classmethod
+    def sequential(cls, layers: list[Layer]) -> 'Network':
+        for i in range(len(layers) - 1):
+            layers[i].wire(layers[i + 1])
+        return Network(layers, [layers[0]], layers[-1])
+
+    @staticmethod
+    def detect_sources(layers: list[Layer]) -> list[Layer]:
+        sources = [
+            layer
+            for layer, parents in Layer.PARENT_GRAPH.items()
+            if not parents and layer in layers
+        ]
+        return sources
+
+    @staticmethod
+    def detect_sink(layers: list[Layer]) -> Layer:
+        sinks = [
+            layer
+            for layer, children in Layer.CHILD_GRAPH.items()
+            if not children and layer in layers
+        ]
+        assert len(sinks) == 1
+        return sinks[0]
+
     def __init__(
         self,
         layers: list[Layer],
@@ -26,9 +51,11 @@ class Network:
         verbose: bool = True,
         callback: Optional[Callable[[State], None]] = None 
     ):
-        state = self._initialize()
+        state = State()
         state.epochs = epochs
         state.training_samples = len(x_train)
+        
+        self._initialize_layers(state)
 
         # training loop
         for i in range(epochs):
@@ -59,7 +86,8 @@ class Network:
     def run(self, x: Array, state: Optional[State] = None) -> Array:
         computed: dict[Layer, Array] = dict()
         for layer in self.execution_order:
-            state.current_layer = layer
+            if state:
+                state.current_layer = layer
 
             if layer in self.sources:
                 keys = layer.input_keys()
@@ -76,6 +104,13 @@ class Network:
 
     def run_all(self, x_list: list[Array]) -> list[Array]:
         return [self.run(x) for x in x_list]
+
+    def subnet(self, sources: list[Layer], sink: Layer) -> 'Network':
+        return Network(Layer.query_graph(sources, sink))
+
+    def __getitem__(self, subscript) -> 'Network':
+        layers = self.layers[subscript]
+        return Network(layers, [layers[0]], layers[-1])
 
     def _train(self, output_gradient: Array):
         reverse_computed: dict[Layer, dict[InputKey, Array]] = dict()
@@ -94,9 +129,7 @@ class Network:
             if layer.trainable:
                 layer.optimize(layer.parameters_gradient(children_gradient))
 
-    def _initialize(self) -> State:
-        state = State()
-        
+    def _initialize_layers(self, state: State):        
         # provide state to layers
         for layer in self.layers:
             layer.on_state(state)
@@ -117,35 +150,3 @@ class Network:
                 layer.setup_optimizers()
 
         return state
-
-    def subnet(self, sources: list[Layer], sink: Layer) -> 'Network':
-        return Network(Layer.query_graph(sources, sink))
-
-    def __getitem__(self, subscript) -> 'Network':
-        layers = self.layers[subscript]
-        return Network(layers, [layers[0]], layers[-1])
-
-    @classmethod
-    def sequential(cls, layers: list[Layer]) -> 'Network':
-        for i in range(len(layers) - 1):
-            layers[i].wire(layers[i + 1])
-        return Network(layers, [layers[0]], layers[-1])
-
-    @staticmethod
-    def detect_sources(layers: list[Layer]) -> list[Layer]:
-        sources = [
-            layer
-            for layer, parents in Layer.PARENT_GRAPH.items()
-            if not parents and layer in layers
-        ]
-        return sources
-
-    @staticmethod
-    def detect_sink(layers: list[Layer]) -> Layer:
-        sinks = [
-            layer
-            for layer, children in Layer.CHILD_GRAPH.items()
-            if not children and layer in layers
-        ]
-        assert len(sinks) == 1
-        return sinks[0]

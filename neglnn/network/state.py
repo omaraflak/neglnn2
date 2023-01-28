@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 from neglnn.utils.types import Float, Shape
 
 if TYPE_CHECKING:
@@ -10,7 +10,7 @@ class State:
     epochs: int = 0
     training_samples: int = 0
     current_epoch: int = 0
-    current_layer: 'Layer' = 0
+    current_layer: Optional['Layer'] = None
     cost: Float = 0
 
     @property
