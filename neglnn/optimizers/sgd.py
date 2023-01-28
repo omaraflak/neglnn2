@@ -6,11 +6,5 @@ class SGD(Optimizer):
         super().__init__()
         self.learning_rate = learning_rate
 
-    def record(self, update: Update):
-        self.update = update
-
     def optimize(self):
         self.update.parameter -= self.learning_rate * self.update.gradient
-
-    def should_optimize(self) -> bool:
-        return True

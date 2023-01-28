@@ -8,13 +8,13 @@ class Update:
 
 class Optimizer:
     def record(self, update: Update):
-        raise NotImplementedError
+        self.update = update
 
     def optimize(self):
         raise NotImplementedError
 
     def should_optimize(self) -> bool:
-        raise NotImplementedError
+        return True
 
     def on_target_shape(self, shape: Shape):
         self.target_shape = shape

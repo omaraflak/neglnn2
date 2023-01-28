@@ -8,15 +8,9 @@ class Momentum(Optimizer):
         self.learning_rate = learning_rate
         self.mu = mu
 
-    def record(self, update: Update):
-        self.update = update
-
     def optimize(self):
         self.v = self.mu * self.v + self.learning_rate * self.update.gradient
         self.update.parameter -= self.v
-
-    def should_optimize(self) -> bool:
-        return True
 
     def on_target_shape(self, target_shape: Shape):
         super().on_target_shape(target_shape)
