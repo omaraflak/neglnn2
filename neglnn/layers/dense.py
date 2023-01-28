@@ -16,11 +16,11 @@ class Dense(Layer):
         return [self.weights, self.biases]
 
     def forward(self, inputs: dict[InputKey, Array]) -> Array:
-        self.input = inputs[Layer.SINGLE_INPUT]
+        self.input = inputs[Layer.INPUT]
         return np.dot(self.weights, self.input) + self.biases
 
     def input_gradient(self, output_gradient: Array) -> dict[InputKey, Array]:
-        return {Layer.SINGLE_INPUT: np.dot(self.weights.T, output_gradient)}
+        return {Layer.INPUT: np.dot(self.weights.T, output_gradient)}
 
     def parameters_gradient(self, output_gradient: Array) -> list[Array]:
         return [np.dot(output_gradient, self.input.T), output_gradient]

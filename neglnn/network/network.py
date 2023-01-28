@@ -93,7 +93,7 @@ class Network:
                 layer.optimize(layer.parameters_gradient(children_gradient))
 
     def _initialize(self) -> State:
-        state = State(layers=self.execution_order)
+        state = State()
         
         # provide state to layers
         for layer in self.layers:

@@ -22,7 +22,7 @@ class ConvUnit(Layer):
         return [self.kernels, self.bias]
 
     def forward(self, inputs: dict[InputKey, Array]) -> Array:
-        self.input = inputs[Layer.SINGLE_INPUT]
+        self.input = inputs[Layer.INPUT]
         return self.bias + np.sum([
             signal.correlate2d(image, kernel, 'valid')
             for image, kernel in zip(self.input, self.kernels)
@@ -33,7 +33,7 @@ class ConvUnit(Layer):
             signal.convolve2d(output_gradient, kernel, 'full')
             for kernel in self.kernels
         ])
-        return {Layer.SINGLE_INPUT: input_gradient}
+        return {Layer.INPUT: input_gradient}
 
     def parameters_gradient(self, output_gradient: Array) -> list[Array]:
         kernels_gradient = np.array([

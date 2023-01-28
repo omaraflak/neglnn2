@@ -9,8 +9,8 @@ class Activation(Layer):
         raise NotImplementedError()
 
     def forward(self, inputs: dict[InputKey, Array]) -> Array:
-        self.input = inputs[Layer.SINGLE_INPUT]
+        self.input = inputs[Layer.INPUT]
         return self.call(self.input)
 
     def input_gradient(self, output_gradient: Array) -> dict[InputKey, Array]:
-        return {Layer.SINGLE_INPUT: output_gradient * self.prime(self.input)}
+        return {Layer.INPUT: output_gradient * self.prime(self.input)}

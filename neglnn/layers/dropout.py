@@ -9,11 +9,11 @@ class Dropout(Layer):
         self.training = training
 
     def forward(self, inputs: dict[InputKey, Array]) -> Array:
-        input = inputs[Layer.SINGLE_INPUT]
+        input = inputs[Layer.INPUT]
         if self.training:
             return input
         self.kept = np.random.rand(*input.shape) > self.probability
         return self.kept * input
 
     def input_gradient(self, output_gradient: Array) -> dict[InputKey, Array]:
-        return {Layer.SINGLE_INPUT: self.kept * output_gradient}
+        return {Layer.INPUT: self.kept * output_gradient}

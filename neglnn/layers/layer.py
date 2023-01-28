@@ -15,7 +15,7 @@ Base Laye class. Initialization order is the following:
 class Layer(Stateful, Identifiable):
     PARENT_GRAPH: dict['Layer', dict[InputKey, 'Layer']] = dict()
     CHILD_GRAPH: dict['Layer', dict[InputKey, 'Layer']] = dict()
-    SINGLE_INPUT = 'input'
+    INPUT = 'input'
 
     def __init__(
         self,
@@ -93,7 +93,7 @@ class Layer(Stateful, Identifiable):
             if optimizer.should_optimize():
                 optimizer.optimize()
 
-    def wire(self, layer: 'Layer', key: InputKey = SINGLE_INPUT):
+    def wire(self, layer: 'Layer', key: InputKey = INPUT):
         Layer.CHILD_GRAPH[self][key] = layer
         Layer.PARENT_GRAPH[layer][key] = self
 

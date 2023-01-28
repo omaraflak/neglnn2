@@ -30,10 +30,10 @@ class Conv(Layer):
 
     def input_gradient(self, output_gradient: Array) -> dict[InputKey, Array]:
         input_gradients = [
-            unit.input_gradient(grad)[Layer.SINGLE_INPUT]
+            unit.input_gradient(grad)[Layer.INPUT]
             for unit, grad in zip(self.conv_units, output_gradient)
         ]
-        return {Layer.SINGLE_INPUT: np.sum(input_gradients, axis=0)}
+        return {Layer.INPUT: np.sum(input_gradients, axis=0)}
 
     def parameters_gradient(self, output_gradient: Array) -> list[Array]:
         return [
