@@ -48,7 +48,7 @@ class Graph:
         return [layer for layer in self.layers if not self.children[layer]]
 
     def copy(self, sources: list[Layer], sink: Layer) -> 'Graph':
-        layers = self.query(sources, sink)
+        layers = self.get_ordered_dependencies(sources, sink)
         graph = Graph()
         for parent in layers:
             for key, child in self.children[parent].items():
