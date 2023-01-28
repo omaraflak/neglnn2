@@ -1,6 +1,7 @@
 import numpy as np
 from scipy import signal
 from neglnn.layers.layer import Layer
+from neglnn.network.graph import Graph
 from neglnn.utils.types import Array, Shape3, InputKey
 
 class ConvUnit(Layer):
@@ -10,11 +11,11 @@ class ConvUnit(Layer):
             input_height - kernel_size + 1,
             input_width - kernel_size + 1
         )
-        super().__init__(input_shape, output_shape, trainable=True, **kwargs)
+        super().__init__(input_shape, output_shape, **kwargs)
         self.kernels_shape = (input_depth, kernel_size, kernel_size)
         self.bias_shape = output_shape
 
-    def initialize(self):
+    def initialize_parameters(self):
         self.kernels = self.initializer.get(*self.kernels_shape)
         self.bias = self.initializer.get(*self.bias_shape)
 
@@ -22,7 +23,7 @@ class ConvUnit(Layer):
         return [self.kernels, self.bias]
 
     def forward(self, inputs: dict[InputKey, Array]) -> Array:
-        self.input = inputs[Layer.INPUT]
+        self.input = inputs[Graph.INPUT]
         return self.bias + np.sum([
             signal.correlate2d(image, kernel, 'valid')
             for image, kernel in zip(self.input, self.kernels)
@@ -33,7 +34,7 @@ class ConvUnit(Layer):
             signal.convolve2d(output_gradient, kernel, 'full')
             for kernel in self.kernels
         ])
-        return {Layer.INPUT: input_gradient}
+        return {Graph.INPUT: input_gradient}
 
     def parameters_gradient(self, output_gradient: Array) -> list[Array]:
         kernels_gradient = np.array([

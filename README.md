@@ -9,23 +9,22 @@ import numpy as np
 from neglnn.layers.dense import Dense
 from neglnn.activations.tanh import Tanh
 from neglnn.losses.mse import MSE
-from neglnn.initializers.normal import Normal
+from neglnn.initializers.random_uniform import RandomUniform
 from neglnn.optimizers.momentum import Momentum
 from neglnn.network.network import Network
 
-X = np.reshape([[0, 0], [0, 1], [1, 0], [1, 1]], (4, 1, 2))
-Y = np.reshape([[0], [1], [1], [0]], (4, 1, 1))
+x_train = np.reshape([[0, 0], [0, 1], [1, 0], [1, 1]], (4, 2, 1))
+y_train = np.reshape([[0], [1], [1], [0]], (4, 1, 1))
 
 network = Network.sequential([
-    Dense(2, 3, initializer=Normal(), optimizer=lambda: Momentum()),
+    Dense(2, 3, initializer=RandomUniform(), optimizer=lambda: Momentum()),
     Tanh(),
-    Dense(3, 1, initializer=Normal(), optimizer=lambda: Momentum()),
+    Dense(3, 1, initializer=RandomUniform(), optimizer=lambda: Momentum()),
     Tanh()
 ])
 
-network.fit(X, Y, MSE(), 1000)
-
-print(network.run_all(X))
+network.fit(x_train, y_train, MSE(), 1000)
+print(network.run_all(x_train))
 ```
 
 # Graph model
@@ -34,7 +33,6 @@ User API still under construction...
 
 ```python
 import numpy as np
-
 from neglnn.layers.dense import Dense
 from neglnn.activations.tanh import Tanh
 from neglnn.losses.mse import MSE
@@ -43,6 +41,7 @@ from neglnn.utils.types import Array, InputKey
 from neglnn.initializers.random_uniform import RandomUniform
 from neglnn.optimizers.momentum import Momentum
 from neglnn.network.network import Network
+from neglnn.network.graph import Graph
 
 
 class MultiplicationLayer(Layer):
@@ -64,22 +63,21 @@ class MultiplicationLayer(Layer):
 x_train = np.reshape([[0, 0], [0, 1], [1, 0], [1, 1]], (4, 2, 1))
 y_train = np.reshape([[0], [1], [1], [0]], (4, 1, 1))
 
-
 dense1 = Dense(2, 3, initializer=RandomUniform(), optimizer=lambda: Momentum())
 activation1 = Tanh()
 dense2 = Dense(3, 1, initializer=RandomUniform(), optimizer=lambda: Momentum())
 activation2 = Tanh()
 mult = MultiplicationLayer()
 
-dense1.wire(activation1)
-activation1.wire(dense2)
-dense2.wire(activation2)
+graph = Graph()
+graph.connect(dense1, activation1)
+graph.connect(activation1, dense2)
+graph.connect(dense2, activation2)
 # split
-activation2.wire(mult, 'a')
-dense2.wire(mult, 'b')
+graph.connect(activation2, mult, 'a')
+graph.connect(dense2, mult, 'b')
 
-network = Network([dense1, activation1, dense2, activation2, mult])
-
+network = Network(graph)
 network.fit(x_train, y_train, MSE(), 1000)
 print(network.run_all(x_train))
 ```
