@@ -16,14 +16,14 @@ class Network:
     def __init__(
         self,
         graph: Graph,
-        sources: Optional[list[Layer]] = None,
+        source: Optional[Layer] = None,
         sink: Optional[Layer] = None,
         initialize_layers: bool = True
     ):
         self.graph = graph
-        self.sources = sources or graph.get_sources()
+        self.source = source or graph.get_sources()[0]
         self.sink = sink or graph.get_sinks()[0]
-        self.layers = graph.get_ordered_dependencies(self.sources, self.sink)
+        self.layers = graph.get_ordered_dependencies(self.source, self.sink)
         if initialize_layers:
             self._initialize_layers()
 
@@ -49,24 +49,21 @@ class Network:
     def run(self, x: Array) -> Array:
         computed: dict[Layer, Array] = dict()
         for layer in self.layers:
-            if layer in self.sources:
-                keys = layer.input_keys()
-                assert len(keys) == 1
-                computed[layer] = layer.forward({keys[0]: x})
-                continue
-
-            dependencies = {
-                key: computed[parent]
-                for key, parent in self.graph.parents[layer].items()
-            }
+            if layer == self.source:
+                dependencies = {Graph.INPUT: x}
+            else:
+                dependencies = {
+                    key: computed[parent]
+                    for key, parent in self.graph.parents[layer].items()
+                }
             computed[layer] = layer.forward(dependencies)
         return computed[self.sink]
 
     def run_all(self, x_list: list[Array]) -> list[Array]:
         return [self.run(x) for x in x_list]
 
-    def subnet(self, sources: list[Layer], sink: Layer) -> 'Network':
-        return Network(self.graph.copy(sources, sink))
+    def subnet(self, source: Layer, sink: Layer) -> 'Network':
+        return Network(self.graph.copy(source, sink))
 
     def __getitem__(self, subscript) -> 'Network':
         return Network.sequential(self.layers[subscript], initialize_layers=False)
@@ -75,18 +72,16 @@ class Network:
         reverse_computed: dict[Layer, dict[InputKey, Array]] = dict()
         for layer in reversed(self.layers):
             if layer == self.sink:
-                reverse_computed[layer] = layer.input_gradient(output_gradient)
-                if layer.trainable:
-                    layer.optimize(layer.parameters_gradient(output_gradient))
-                continue
+                gradient = output_gradient
+            else:
+                gradient = np.sum([
+                    reverse_computed[child][key]
+                    for key, child in self.graph.children[layer].items()
+                ], axis=0)
 
-            children_gradient = np.sum([
-                reverse_computed[child][key]
-                for key, child in self.graph.children[layer].items()
-            ], axis=0)
-            reverse_computed[layer] = layer.input_gradient(children_gradient)
+            reverse_computed[layer] = layer.input_gradient(gradient)
             if layer.trainable:
-                layer.optimize(layer.parameters_gradient(children_gradient))
+                layer.optimize(layer.parameters_gradient(gradient))
 
     def _initialize_layers(self):
         for layer in self.graph.layers:

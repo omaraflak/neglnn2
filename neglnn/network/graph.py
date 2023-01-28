@@ -16,17 +16,17 @@ class Graph:
         self.layers.add(parent)
         self.layers.add(child)
 
-    def get_ordered_dependencies(self, sources: list[Layer], sink: Layer) -> list[Layer]:
+    def get_ordered_dependencies(self, source: Layer, sink: Layer) -> list[Layer]:
         seen: set[Layer] = set()
         path: list[Layer] = list()
-        queue = deque(sources)
+        queue = deque([source])
         while queue:
             node = queue.popleft()
             if node in seen:
                 continue
             
             if any(
-                p not in seen and node not in sources
+                p not in seen and node != source
                 for p in self.parents[node].values()
             ):
                 queue.insert(1, node)
@@ -47,8 +47,8 @@ class Graph:
     def get_sinks(self) -> list[Layer]:
         return [layer for layer in self.layers if not self.children[layer]]
 
-    def copy(self, sources: list[Layer], sink: Layer) -> 'Graph':
-        layers = self.get_ordered_dependencies(sources, sink)
+    def copy(self, source: Layer, sink: Layer) -> 'Graph':
+        layers = self.get_ordered_dependencies(source, sink)
         graph = Graph()
         for parent in layers:
             for key, child in self.children[parent].items():

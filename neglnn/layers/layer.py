@@ -40,12 +40,6 @@ class Layer(Identifiable):
             optimizer.on_target_shape(parameter.shape)
             self.optimizers.append(optimizer)
 
-    def input_keys(self) -> list[InputKey]:
-        """
-        Returns input keys that are later passed to the forward method.
-        """
-        return ['input']
-
     def parameters(self) -> list[Array]:
         """
         Return a list of all the trainable parameters
