@@ -23,7 +23,7 @@ class Network:
         self.graph = graph
         self.sources = sources or graph.get_sources()
         self.sink = sink or graph.get_sinks()[0]
-        self.execution_order = graph.query(self.sources, self.sink)
+        self.layers = graph.get_ordered_dependencies(self.sources, self.sink)
         if initialize_layers:
             self._initialize_layers()
 
@@ -48,7 +48,7 @@ class Network:
 
     def run(self, x: Array) -> Array:
         computed: dict[Layer, Array] = dict()
-        for layer in self.execution_order:
+        for layer in self.layers:
             if layer in self.sources:
                 keys = layer.input_keys()
                 assert len(keys) == 1
@@ -69,11 +69,11 @@ class Network:
         return Network(self.graph.copy(sources, sink))
 
     def __getitem__(self, subscript) -> 'Network':
-        return Network.sequential(self.execution_order[subscript], initialize_layers=False)
+        return Network.sequential(self.layers[subscript], initialize_layers=False)
 
     def _train(self, output_gradient: Array):
         reverse_computed: dict[Layer, dict[InputKey, Array]] = dict()
-        for layer in reversed(self.execution_order):
+        for layer in reversed(self.layers):
             if layer == self.sink:
                 reverse_computed[layer] = layer.input_gradient(output_gradient)
                 if layer.trainable:

@@ -16,7 +16,7 @@ class Graph:
         self.layers.add(parent)
         self.layers.add(child)
 
-    def query(self, sources: list[Layer], sink: Layer) -> list[Layer]:
+    def get_ordered_dependencies(self, sources: list[Layer], sink: Layer) -> list[Layer]:
         seen: set[Layer] = set()
         path: list[Layer] = list()
         queue = deque(sources)
