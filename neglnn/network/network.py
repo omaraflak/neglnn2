@@ -38,7 +38,7 @@ class Network:
             # go through all training samples
             for x, y in zip(x_train, y_train):
                 # forward propagation                
-                output = self.run(x)
+                output = self.run(x, state)
 
                 # error for display purpose
                 cost += loss.call(y, output)
@@ -56,9 +56,11 @@ class Network:
             if callback:
                 callback(state)
 
-    def run(self, x: Array) -> Array:
+    def run(self, x: Array, state: Optional[State] = None) -> Array:
         computed: dict[Layer, Array] = dict()
         for layer in self.execution_order:
+            state.current_layer = layer
+
             if layer in self.sources:
                 keys = layer.input_keys()
                 assert len(keys) == 1
