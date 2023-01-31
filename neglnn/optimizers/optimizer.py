@@ -10,12 +10,12 @@ class Optimizer:
         raise NotImplementedError
 
     def reset(self):
-        self.gradient = np.zeros(self.target_shape, dtype=np.float64)
+        self.gradient = np.zeros(self.target_shape)
         self.counter = 0
 
     def on_target_shape(self, shape: Shape):
         self.target_shape = shape
-        self.gradient = np.zeros(shape, dtype=np.float64)
+        self.gradient = np.zeros(shape)
         self.counter = 0
 
     def _avg_gradient(self) -> Array:
