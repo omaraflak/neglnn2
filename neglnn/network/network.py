@@ -68,7 +68,7 @@ class Network:
     def __getitem__(self, subscript) -> 'Network':
         return Network.sequential(self.layers[subscript], initialize_layers=False)
 
-    def _train(self, output_gradient: Array):
+    def _train(self, output_gradient: Array) -> Array:
         reverse_computed: dict[Layer, dict[InputKey, Array]] = dict()
         for layer in reversed(self.layers):
             if layer == self.sink:
@@ -82,6 +82,7 @@ class Network:
             reverse_computed[layer] = layer.input_gradient(gradient)
             if layer.trainable:
                 layer.optimize(layer.parameters_gradient(gradient))
+        return reverse_computed[self.source][Graph.INPUT]
 
     def _initialize_layers(self):
         for layer in self.graph.layers:
