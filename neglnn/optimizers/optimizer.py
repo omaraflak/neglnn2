@@ -15,8 +15,7 @@ class Optimizer:
 
     def on_target_shape(self, shape: Shape):
         self.target_shape = shape
-        self.gradient = np.zeros(shape)
-        self.counter = 0
+        self.reset()
 
     def _avg_gradient(self) -> Array:
         return self.gradient / self.counter
