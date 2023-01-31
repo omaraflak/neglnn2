@@ -33,15 +33,16 @@ class Network:
         y_train: list[Array],
         loss: Loss,
         epochs: int,
+        batch_size: int = 1,
         verbose: bool = True
     ):
         for i in range(epochs):
             cost = 0
-            for x, y in zip(x_train, y_train):
+            for j, (x, y) in enumerate(zip(x_train, y_train)):
                 output = self.run(x)
                 cost += loss.call(y, output)
                 output_gradient = loss.prime(y, output)
-                self._train(output_gradient)
+                self.train(output_gradient, optimize=(j + 1) % batch_size == 0)
             cost /= len(x_train)
             if verbose:
                 print(f'#{i + 1}/{epochs}\t cost={cost:2f}')
@@ -62,13 +63,7 @@ class Network:
     def run_all(self, x_list: list[Array]) -> list[Array]:
         return [self.run(x) for x in x_list]
 
-    def subnet(self, source: Layer, sink: Layer) -> 'Network':
-        return Network(self.graph.copy(source, sink))
-
-    def __getitem__(self, subscript) -> 'Network':
-        return Network.sequential(self.layers[subscript], initialize_layers=False)
-
-    def _train(self, output_gradient: Array) -> Array:
+    def train(self, output_gradient: Array, optimize: bool = True) -> Array:
         reverse_computed: dict[Layer, dict[InputKey, Array]] = dict()
         for layer in reversed(self.layers):
             if layer == self.sink:
@@ -81,11 +76,19 @@ class Network:
 
             reverse_computed[layer] = layer.input_gradient(gradient)
             if layer.trainable:
-                layer.optimize(layer.parameters_gradient(gradient))
+                layer.record_gradients(layer.parameters_gradient(gradient))
+                if optimize:
+                    layer.optimize()
         return reverse_computed[self.source][Graph.INPUT]
 
+    def subnet(self, source: Layer, sink: Layer) -> 'Network':
+        return Network(self.graph.copy(source, sink))
+
+    def __getitem__(self, subscript) -> 'Network':
+        return Network.sequential(self.layers[subscript], initialize_layers=False)
+
     def _initialize_layers(self):
-        for layer in self.graph.layers:
+        for layer in self.layers:
             if layer.trainable:
                 layer.initialize_parameters()
                 layer.setup_optimizers()

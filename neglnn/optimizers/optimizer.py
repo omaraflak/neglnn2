@@ -1,20 +1,22 @@
-from dataclasses import dataclass
+import numpy as np
 from neglnn.utils.types import Array, Shape
 
-@dataclass
-class Update:
-    parameter: Array
-    gradient: Array
-
 class Optimizer:
-    def record(self, update: Update):
-        self.update = update
+    def record(self, gradient: Array):
+        self.gradient += gradient
+        self.counter += 1
 
-    def optimize(self):
+    def optimize(self, parameter: Array):
         raise NotImplementedError
 
-    def should_optimize(self) -> bool:
-        return True
+    def reset(self):
+        self.gradient = np.zeros(self.target_shape, dtype=np.float64)
+        self.counter = 0
 
     def on_target_shape(self, shape: Shape):
         self.target_shape = shape
+        self.gradient = np.zeros(shape, dtype=np.float64)
+        self.counter = 0
+
+    def _avg_gradient(self) -> Array:
+        return self.gradient / self.counter

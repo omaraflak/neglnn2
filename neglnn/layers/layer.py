@@ -1,6 +1,6 @@
 from typing import Callable, Optional
 from neglnn.initializers.initializer import Initializer
-from neglnn.optimizers.optimizer import Optimizer, Update
+from neglnn.optimizers.optimizer import Optimizer
 from neglnn.utils.types import Array, Shape, InputKey
 from neglnn.utils.identifiable import Identifiable
 
@@ -66,15 +66,14 @@ class Layer(Identifiable):
         """
         raise NotImplementedError()
 
-    def optimize(self, parameter_gradients: list[Array]):
-        for optimizer, parameter, gradient in zip(
-            self.optimizers,
-            self.parameters(),
-            parameter_gradients
-        ):
-            optimizer.record(Update(parameter, gradient))
-            if optimizer.should_optimize():
-                optimizer.optimize()
+    def record_gradients(self, parameter_gradients: list[Array]):
+        for optimizer, gradient in zip(self.optimizers, parameter_gradients):
+            optimizer.record(gradient)
+
+    def optimize(self):
+        for optimizer, parameter in zip(self.optimizers, self.parameters()):
+            optimizer.optimize(parameter)
+            optimizer.reset()
 
     def __hash__(self) -> int:
         return hash(self.uid)
