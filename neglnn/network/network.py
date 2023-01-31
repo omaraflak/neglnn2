@@ -45,7 +45,7 @@ class Network:
                 self.train(output_gradient, optimize=(j + 1) % batch_size == 0)
             cost /= len(x_train)
             if verbose:
-                print(f'#{i + 1}/{epochs}\t cost={cost:2f}')
+                print(f'#{i + 1}/{epochs}\t cost={cost:.10f}')
 
     def run(self, x: Array) -> Array:
         computed: dict[Layer, Array] = dict()
