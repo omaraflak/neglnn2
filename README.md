@@ -1,6 +1,6 @@
 # NEGLNN 2
 
-**N**ot **E**fficient but **G**reat to **L**earn **N**eural **N**etwork - Graph Computation
+**N**ot **E**fficient but **G**reat to **L**earn **N**eural **N**etwork - Graph version
 
 # Sequential model
 
@@ -28,8 +28,6 @@ print(network.run_all(x_train))
 ```
 
 # Graph model
-
-User API still under construction...
 
 ```python
 import numpy as np
