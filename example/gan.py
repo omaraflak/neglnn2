@@ -35,8 +35,8 @@ D = Network.sequential([
 
 # params
 loss = BinaryCrossEntropy()
-epochs = 80
-batch_size = 16
+epochs = 150
+batch_size = 8
 
 # intermediate generation to create GIF
 gen_count = 10
@@ -52,7 +52,7 @@ G_errors = []
 D_errors = []
 for epoch in range(epochs):
     G_error, D_error = 0, 0
-    for real_image in x_train:
+    for index, real_image in enumerate(x_train):
         # generate image
         noise = np.random.randn(noise_size, 1)
         fake_image = G.run(noise)
@@ -75,8 +75,9 @@ for epoch in range(epochs):
         G_error += loss.call(REAL, fake_predict)
         D_error += loss.call(soft_real, real_predict) + loss.call(FAKE, fake_predict)
 
-        G.optimize()
-        D.optimize()
+        if index % batch_size == 0:
+            G.optimize()
+            D.optimize()
 
     G_error /= len(x_train)
     D_error /= len(x_train)
