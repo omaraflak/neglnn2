@@ -1,4 +1,4 @@
-import pickle
+import dill
 import numpy as np
 from typing import Optional
 from neglnn.layers.layer import Layer
@@ -91,11 +91,12 @@ class Network:
         return Network(self.graph.copy(source, sink))
 
     def save(self, filename: str):
-        pickle.dump(self, open(filename, 'wb'))
+        dill.dump(self.graph, open(filename, 'wb'))
 
     @classmethod
     def load(cls, filename: str) -> 'Network':
-        return pickle.load(open(filename, 'rb'))
+        graph = dill.load(open(filename, 'rb'))
+        return Network(graph, initialize_layers=False)
 
     def __getitem__(self, subscript) -> 'Network':
         return Network.sequential(self.layers[subscript], initialize_layers=False)
