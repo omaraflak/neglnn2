@@ -13,7 +13,8 @@ class Layer(Identifiable):
         input_shape: Optional[Shape] = None,
         output_shape: Optional[Shape] = None,
         initializer: Optional[Initializer] = None,
-        optimizer: Optional[Callable[[], Optimizer]] = None
+        optimizer: Optional[Callable[[], Optimizer]] = None,
+        trainable: bool = False
     ):
         super().__init__()
         self.input_shape = input_shape
@@ -22,10 +23,7 @@ class Layer(Identifiable):
         self.optimizer = optimizer
         if self.initializer:
             self.initializer.on_target_layer(self)
-
-    @property
-    def trainable(self) -> bool:
-        return self.initializer and self.optimizer
+        self.trainable = trainable or bool(self.initializer and self.optimizer)
 
     def initialize_parameters(self):
         """

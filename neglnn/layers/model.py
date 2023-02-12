@@ -5,7 +5,7 @@ from neglnn.utils.types import Array, InputKey
 
 class Model(Layer):
     def __init__(self, network: Network, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(trainable=True, **kwargs)
         self.network = network
 
     def initialize_parameters(self):
@@ -21,7 +21,7 @@ class Model(Layer):
         return self.network.run(inputs[Graph.INPUT])
 
     def input_gradient(self, output_gradient: Array) -> dict[InputKey, Array]:
-        return {Graph.INPUT: self.network.record_gradient(output_gradient)}
+        return {Graph.INPUT: self.network.record_gradient(output_gradient, optimize=False)}
 
     def optimize(self):
         self.network.optimize()
