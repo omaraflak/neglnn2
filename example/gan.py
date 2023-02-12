@@ -36,7 +36,7 @@ D = Network.sequential([
 # params
 loss = BinaryCrossEntropy()
 epochs = 80
-batch_size = 1
+batch_size = 16
 
 # intermediate generation to create GIF
 gen_count = 10
@@ -70,7 +70,7 @@ for epoch in range(epochs):
         # backward generator
         dDGdG = dEDdG / dEDdDG
         dEGdDG = loss.prime(ONE, fake_predict)
-        G.record_gradient(dDGdG * dEGdDG, optimize=False)
+        G.record_gradient(dEGdDG * dDGdG, optimize=False)
 
         G_error += loss.call(ONE, fake_predict)
         D_error += loss.call(soft_real, real_predict) + loss.call(ZERO, fake_predict)
