@@ -44,8 +44,8 @@ seeds = np.random.randn(gen_count, noise_size, 1)
 print_fq = 2
 
 # labels
-ONE = np.array([[1]])
-ZERO = np.array([[0]])
+REAL = np.array([[1]])
+FAKE = np.array([[0]])
 
 # training
 G_errors = []
@@ -64,16 +64,16 @@ for epoch in range(epochs):
 
         # discriminate fake image + backward
         fake_predict = D.run(fake_image)
-        dEDdDG = loss.prime(ZERO, fake_predict)
+        dEDdDG = loss.prime(FAKE, fake_predict)
         dEDdG = D.record_gradient(dEDdDG, optimize=False)
 
         # backward generator
         dDGdG = dEDdG / dEDdDG
-        dEGdDG = loss.prime(ONE, fake_predict)
+        dEGdDG = loss.prime(REAL, fake_predict)
         G.record_gradient(dEGdDG * dDGdG, optimize=False)
 
-        G_error += loss.call(ONE, fake_predict)
-        D_error += loss.call(soft_real, real_predict) + loss.call(ZERO, fake_predict)
+        G_error += loss.call(REAL, fake_predict)
+        D_error += loss.call(soft_real, real_predict) + loss.call(FAKE, fake_predict)
 
         G.optimize()
         D.optimize()
