@@ -17,5 +17,5 @@ class Optimizer:
         self.target_shape = shape
         self.reset()
 
-    def _avg_gradient(self) -> Array:
+    def _get_gradient(self) -> Array:
         return self.gradient / self.counter

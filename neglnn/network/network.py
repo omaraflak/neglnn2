@@ -1,3 +1,4 @@
+import pickle
 import numpy as np
 from typing import Optional
 from neglnn.layers.layer import Layer
@@ -42,7 +43,7 @@ class Network:
                 output = self.run(x)
                 cost += loss.call(y, output)
                 output_gradient = loss.prime(y, output)
-                self.train(output_gradient, optimize=(j + 1) % batch_size == 0)
+                self.record_gradient(output_gradient, optimize=(j + 1) % batch_size == 0)
             cost /= len(x_train)
             if verbose:
                 print(f'#{i + 1}/{epochs}\t cost={cost:.10f}')
@@ -63,7 +64,7 @@ class Network:
     def run_all(self, x_list: list[Array]) -> list[Array]:
         return [self.run(x) for x in x_list]
 
-    def train(self, output_gradient: Array, optimize: bool = True) -> Array:
+    def record_gradient(self, output_gradient: Array, optimize: bool = True) -> Array:
         reverse_computed: dict[Layer, dict[InputKey, Array]] = dict()
         for layer in reversed(self.layers):
             if layer == self.sink:
@@ -81,8 +82,20 @@ class Network:
                     layer.optimize()
         return reverse_computed[self.source][Graph.INPUT]
 
+    def optimize(self):
+        for layer in self.layers:
+            if layer.trainable:
+                layer.optimize()
+
     def subnet(self, source: Layer, sink: Layer) -> 'Network':
         return Network(self.graph.copy(source, sink))
+
+    def save(self, filename: str):
+        pickle.dump(self, open(filename, 'wb'))
+
+    @classmethod
+    def load(cls, filename: str) -> 'Network':
+        return pickle.load(open(filename, 'rb'))
 
     def __getitem__(self, subscript) -> 'Network':
         return Network.sequential(self.layers[subscript], initialize_layers=False)

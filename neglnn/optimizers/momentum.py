@@ -9,7 +9,7 @@ class Momentum(Optimizer):
         self.mu = mu
 
     def optimize(self, parameter: Array):
-        self.v = self.mu * self.v + self.learning_rate * self._avg_gradient()
+        self.v = self.mu * self.v + self.learning_rate * self._get_gradient()
         parameter -= self.v
 
     def on_target_shape(self, target_shape: Shape):

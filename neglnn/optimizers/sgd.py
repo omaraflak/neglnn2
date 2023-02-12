@@ -7,4 +7,4 @@ class SGD(Optimizer):
         self.learning_rate = learning_rate
 
     def optimize(self, parameter: Array):
-        parameter -= self.learning_rate * self._avg_gradient()
+        parameter -= self.learning_rate * self._get_gradient()

@@ -12,7 +12,7 @@ class Adam(Optimizer):
         self.iteration = 1
         
     def optimize(self, parameter: Array):
-        gradient = self._avg_gradient()
+        gradient = self._get_gradient()
         self.m = self.beta_1 * self.m + (1 - self.beta_1) * gradient
         self.v = self.beta_2 * self.v + (1 - self.beta_2) * np.power(gradient, 2)
         m_hat = self.m / (1 - np.power(self.beta_1, self.iteration))
