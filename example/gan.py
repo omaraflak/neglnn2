@@ -10,11 +10,12 @@ from neglnn.optimizers.adam import Adam
 from neglnn.initializers.he_normal import HeNormal
 from neglnn.network.network import Network
 
-# load mnist dataset: ~500 samples per class
+# load mnist dataset
+samples_per_class = 100
 (x_train, y_train), _ = mnist.load_data()
 x_train = x_train.astype('float32') / 255
-x_train = x_train[:50 * 10]
-x_train = np.reshape(x_train, (500, -1, 1))
+x_train = x_train[:samples_per_class * 10]
+x_train = np.reshape(x_train, (samples_per_class * 10, -1, 1))
 
 # generator model
 noise_size = 100
