@@ -14,6 +14,11 @@ class Network:
             graph.connect(layers[i], layers[i + 1])
         return Network(graph, initialize_layers=initialize_layers)
 
+    @classmethod
+    def load(cls, filename: str) -> 'Network':
+        graph = dill.load(open(filename, 'rb'))
+        return Network(graph, initialize_layers=False)
+
     def __init__(
         self,
         graph: Graph,
@@ -92,11 +97,6 @@ class Network:
 
     def save(self, filename: str):
         dill.dump(self.graph, open(filename, 'wb'))
-
-    @classmethod
-    def load(cls, filename: str) -> 'Network':
-        graph = dill.load(open(filename, 'rb'))
-        return Network(graph, initialize_layers=False)
 
     def __getitem__(self, subscript) -> 'Network':
         return Network.sequential(self.layers[subscript], initialize_layers=False)
