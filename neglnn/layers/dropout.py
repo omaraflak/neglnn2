@@ -11,7 +11,7 @@ class Dropout(Layer):
 
     def forward(self, inputs: dict[InputKey, Array]) -> Array:
         input = inputs[Graph.INPUT]
-        if self.training:
+        if not self.training:
             return input
         self.kept = np.random.rand(*input.shape) > self.probability
         return self.kept * input

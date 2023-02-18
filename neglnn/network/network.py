@@ -41,7 +41,7 @@ class Network:
         epochs: int,
         batch_size: int = 1,
         verbose: bool = True
-    ):
+    ) -> float:
         for i in range(epochs):
             cost = 0
             for j, (x, y) in enumerate(zip(x_train, y_train)):
@@ -52,6 +52,7 @@ class Network:
             cost /= len(x_train)
             if verbose:
                 print(f'#{i + 1}/{epochs}\t cost={cost:.10f}')
+        return cost
 
     def run(self, x: Array) -> Array:
         computed: dict[Layer, Array] = dict()

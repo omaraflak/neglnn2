@@ -49,21 +49,16 @@ REAL = np.array([[1]])
 FAKE = np.array([[0]])
 
 # training
-G_errors = []
-D_errors = []
 for epoch in range(epochs):
     G_error, D_error = 0, 0
     for index, real_image in enumerate(x_train):
-        # generate image
-        noise = np.random.randn(noise_size, 1)
-        fake_image = G.run(noise)
-
         # discriminate real image + backward
         real_predict = D.run(real_image)
         soft_real = np.random.uniform(0.9, 1)
         D.record_gradient(loss.prime(soft_real, real_predict), optimize=False)
 
         # discriminate fake image + backward
+        fake_image = G.run(np.random.randn(noise_size, 1))
         fake_predict = D.run(fake_image)
         dEDdDG = loss.prime(FAKE, fake_predict)
         dEDdG = D.record_gradient(dEDdDG, optimize=False)
@@ -82,8 +77,6 @@ for epoch in range(epochs):
 
     G_error /= len(x_train)
     D_error /= len(x_train)
-    G_errors.append(G_error)
-    D_errors.append(D_error)
     print('%d/%d, g_error=%f, d_error=%f' % (epoch + 1, epochs, G_error, D_error))
 
     if (epoch + 1) % print_fq == 0:
