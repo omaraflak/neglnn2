@@ -43,16 +43,25 @@ class Network:
         verbose: bool = True
     ) -> float:
         for i in range(epochs):
-            cost = 0
-            for j, (x, y) in enumerate(zip(x_train, y_train)):
-                output = self.run(x)
-                cost += loss.call(y, output)
-                output_gradient = loss.prime(y, output)
-                self.record_gradient(output_gradient, optimize=(j + 1) % batch_size == 0)
-            cost /= len(x_train)
+            cost = self.fit_once(x_train, y_train, loss, batch_size)
             if verbose:
                 print(f'#{i + 1}/{epochs}\t cost={cost:.10f}')
         return cost
+    
+    def fit_once(
+        self,
+        x_train: list[Array],
+        y_train: list[Array],
+        loss: Loss,
+        batch_size: int = 1
+    ) -> float:
+        cost = 0
+        for i, (x, y) in enumerate(zip(x_train, y_train)):
+            output = self.run(x)
+            cost += loss.call(y, output)
+            output_gradient = loss.prime(y, output)
+            self.record_gradient(output_gradient, optimize=(i + 1) % batch_size == 0)
+        return cost / len(x_train)
 
     def run(self, x: Array) -> Array:
         computed: dict[Layer, Array] = dict()

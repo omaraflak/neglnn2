@@ -49,14 +49,14 @@ batch_size = 256
 half_batch = batch_size // 2
 batch_per_epoch = 50
 
-# intermediate generation to create GIF
+# intermediate image generation
 gen_count = 10
 seeds = np.random.randn(gen_count, noise_size, 1)
 print_fq = 2
 
 # labels
-REAL = np.array([[1]])
-FAKE = np.array([[0]])
+REAL = 1
+FAKE = 0
 D_TRAINING_Y = half_batch * [FAKE] + half_batch * [REAL]
 G_TRAINING_Y = batch_size * [REAL]
 
@@ -68,12 +68,12 @@ for epoch in range(epochs):
         fake_images = G.run_all(np.random.randn(half_batch, noise_size, 1))
         real_images = x_train[np.random.randint(x_train.shape[0], size=half_batch)]
         d_training_x = np.vstack((fake_images, real_images))
-        D_error += D.fit(d_training_x, D_TRAINING_Y, loss, epochs=1, batch_size=32, verbose=False)
+        D_error += D.fit_once(d_training_x, D_TRAINING_Y, loss, batch_size=8)
 
         # train generator
         g_training_x = np.random.randn(batch_size, noise_size, 1)
         D_model.trainable = False
-        G_error += GAN.fit(g_training_x, G_TRAINING_Y, loss, epochs=1, batch_size=32, verbose=False)
+        G_error += GAN.fit_once(g_training_x, G_TRAINING_Y, loss, batch_size=8)
         D_model.trainable = True
 
     G_error /= batch_per_epoch

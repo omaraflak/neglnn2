@@ -7,4 +7,4 @@ class MSE(Loss):
         return np.mean(np.power(true - pred, 2))
 
     def prime(self, true: Array, pred: Array) -> Array:
-        return 2 * (pred - true) / pred.size
+        return 2 * (pred - true) / np.size(pred)
