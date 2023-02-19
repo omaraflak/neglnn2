@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt
 from keras.datasets import mnist
 
 from neglnn.layers.dense import Dense
+from neglnn.layers.model import Model
+from neglnn.layers.dropout import Dropout
+from neglnn.layers.scalar import Scalar
 from neglnn.activations.leaky_relu import LeakyRelu
 from neglnn.activations.sigmoid import Sigmoid
 from neglnn.losses.binary_cross_entropy import BinaryCrossEntropy
@@ -11,72 +14,70 @@ from neglnn.initializers.he_normal import HeNormal
 from neglnn.network.network import Network
 
 # load mnist dataset
-samples_per_class = 100
 (x_train, y_train), _ = mnist.load_data()
 x_train = x_train.astype('float32') / 255
-x_train = x_train[:samples_per_class * 10]
-x_train = np.reshape(x_train, (samples_per_class * 10, -1, 1))
+x_train = np.reshape(x_train, (x_train.shape[0], -1, 1))
 
-# generator model
+# generator
 noise_size = 100
 G = Network.sequential([
-    Dense(noise_size, 200, initializer=HeNormal(), optimizer=lambda: Adam(beta_1=0.5)),
+    Dense(noise_size, 200, initializer=HeNormal(), optimizer=lambda: Adam(learning_rate=0.0002, beta_1=0.5)),
     LeakyRelu(0.2),
-    Dense(200, 784, initializer=HeNormal(), optimizer=lambda: Adam(beta_1=0.5)),
+    Dense(200, 784, initializer=HeNormal(), optimizer=lambda: Adam(learning_rate=0.0002, beta_1=0.5)),
     Sigmoid()
 ])
 
 # discriminator
 D = Network.sequential([
-    Dense(784, 200, initializer=HeNormal(), optimizer=lambda: Adam(beta_1=0.5)),
+    Dense(784, 200, initializer=HeNormal(), optimizer=lambda: Adam(learning_rate=0.0002, beta_1=0.5)),
     LeakyRelu(0.2),
-    Dense(200, 1, initializer=HeNormal(), optimizer=lambda: Adam(beta_1=0.5)),
-    Sigmoid()
+    Dropout(0.4),
+    Dense(200, 1, initializer=HeNormal(), optimizer=lambda: Adam(learning_rate=0.0002, beta_1=0.5)),
+    Sigmoid(),
+    Scalar()
 ])
+
+# GAN
+G_model = Model(G)
+D_model = Model(D)
+GAN = Network.sequential([G_model, D_model])
 
 # params
 loss = BinaryCrossEntropy()
-epochs = 150
-batch_size = 8
+epochs = 50
+batch_size = 256
+half_batch = batch_size // 2
+batch_per_epoch = 50
 
-# intermediate generation to create GIF
+# intermediate image generation
 gen_count = 10
 seeds = np.random.randn(gen_count, noise_size, 1)
 print_fq = 2
 
 # labels
-REAL = np.array([[1]])
-FAKE = np.array([[0]])
+REAL = 1
+FAKE = 0
+D_TRAINING_Y = half_batch * [FAKE] + half_batch * [REAL]
+G_TRAINING_Y = batch_size * [REAL]
 
 # training
 for epoch in range(epochs):
     G_error, D_error = 0, 0
-    for index, real_image in enumerate(x_train):
-        # discriminate real image + backward
-        real_predict = D.run(real_image)
-        soft_real = np.random.uniform(0.9, 1)
-        D.record_gradient(loss.prime(soft_real, real_predict), optimize=False)
+    for j in range(batch_per_epoch):
+        # train discriminator
+        fake_images = G.run_all(np.random.randn(half_batch, noise_size, 1))
+        real_images = x_train[np.random.randint(x_train.shape[0], size=half_batch)]
+        d_training_x = np.vstack((fake_images, real_images))
+        D_error += D.fit_once(d_training_x, D_TRAINING_Y, loss, batch_size=8)
 
-        # discriminate fake image + backward
-        fake_image = G.run(np.random.randn(noise_size, 1))
-        fake_predict = D.run(fake_image)
-        dEDdDG = loss.prime(FAKE, fake_predict)
-        dEDdG = D.record_gradient(dEDdDG, optimize=False)
+        # train generator
+        g_training_x = np.random.randn(batch_size, noise_size, 1)
+        D_model.trainable = False
+        G_error += GAN.fit_once(g_training_x, G_TRAINING_Y, loss, batch_size=8)
+        D_model.trainable = True
 
-        # backward generator
-        dDGdG = dEDdG / dEDdDG
-        dEGdDG = loss.prime(REAL, fake_predict)
-        G.record_gradient(dEGdDG * dDGdG, optimize=False)
-
-        G_error += loss.call(REAL, fake_predict)
-        D_error += loss.call(soft_real, real_predict) + loss.call(FAKE, fake_predict)
-
-        if index % batch_size == 0:
-            G.optimize()
-            D.optimize()
-
-    G_error /= len(x_train)
-    D_error /= len(x_train)
+    G_error /= batch_per_epoch
+    D_error /= batch_per_epoch
     print('%d/%d, g_error=%f, d_error=%f' % (epoch + 1, epochs, G_error, D_error))
 
     if (epoch + 1) % print_fq == 0:

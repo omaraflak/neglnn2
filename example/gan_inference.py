@@ -13,7 +13,7 @@ for i in range(10):
         generated = generator.run(seed)
         prediction = discriminator.run(generated) > 0.5
         image = np.reshape(generated, (28, 28))
-        plt.subplot(10, 10, i * 10 + j + 1, title=str(prediction[0][0]))
+        plt.subplot(10, 10, i * 10 + j + 1, title=str(prediction))
         plt.imshow(image, cmap='binary')
 
 plt.savefig('inference.jpeg')
