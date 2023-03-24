@@ -19,16 +19,16 @@ def load_data(limit: int):
 
 encoder = Network.sequential([
     Reshape((28, 28), (28 * 28, 1)),
-    Dense(28 * 28, 30, initializer=XavierNormal(), optimizer=lambda: Momentum(0.1)),
+    Dense((28 * 28, 1), (30, 1), initializer=XavierNormal(), optimizer=lambda: Momentum(0.1)),
     Tanh(),
-    Dense(30, 16, initializer=XavierNormal(), optimizer=lambda: Momentum(0.1)),
+    Dense((30, 1), (16, 1), initializer=XavierNormal(), optimizer=lambda: Momentum(0.1)),
     Tanh()
 ])
 
 decoder = Network.sequential([
-    Dense(16, 30, initializer=XavierNormal(), optimizer=lambda: Momentum(0.1)),
+    Dense((16, 1), (30, 1), initializer=XavierNormal(), optimizer=lambda: Momentum(0.1)),
     Tanh(),
-    Dense(30, 28 * 28, initializer=XavierNormal(), optimizer=lambda: Momentum(0.1)),
+    Dense((30, 1), (28 * 28, 1), initializer=XavierNormal(), optimizer=lambda: Momentum(0.1)),
     Tanh(),
     Reshape((28 * 28, 1), (28, 28))
 ])

@@ -11,9 +11,6 @@ from neglnn.network.graph import Graph
 
 
 class MultiplicationLayer(Layer):
-    def input_keys(self) -> list[InputKey]:
-        return ['a', 'b']
-
     def forward(self, inputs: dict[InputKey, Array]) -> Array:
         self.a = inputs['a']
         self.b = inputs['b']
@@ -29,9 +26,9 @@ class MultiplicationLayer(Layer):
 x_train = np.reshape([[0, 0], [0, 1], [1, 0], [1, 1]], (4, 2, 1))
 y_train = np.reshape([[0], [1], [1], [0]], (4, 1, 1))
 
-dense1 = Dense(2, 3, initializer=RandomUniform(), optimizer=lambda: Momentum())
+dense1 = Dense((2, 1), (3, 1), initializer=RandomUniform(), optimizer=lambda: Momentum())
 activation1 = Tanh()
-dense2 = Dense(3, 1, initializer=RandomUniform(), optimizer=lambda: Momentum())
+dense2 = Dense((3, 1), (1, 1), initializer=RandomUniform(), optimizer=lambda: Momentum())
 activation2 = Tanh()
 mult = MultiplicationLayer()
 

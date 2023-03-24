@@ -21,18 +21,18 @@ x_train = np.reshape(x_train, (x_train.shape[0], -1, 1))
 # generator
 noise_size = 100
 G = Network.sequential([
-    Dense(noise_size, 200, initializer=HeNormal(), optimizer=lambda: Adam(learning_rate=0.0002, beta_1=0.5)),
+    Dense((noise_size, 1), (200, 1), initializer=HeNormal(), optimizer=lambda: Adam(learning_rate=0.0002, beta_1=0.5)),
     LeakyRelu(0.2),
-    Dense(200, 784, initializer=HeNormal(), optimizer=lambda: Adam(learning_rate=0.0002, beta_1=0.5)),
+    Dense((200, 1), (784, 1), initializer=HeNormal(), optimizer=lambda: Adam(learning_rate=0.0002, beta_1=0.5)),
     Sigmoid()
 ])
 
 # discriminator
 D = Network.sequential([
-    Dense(784, 200, initializer=HeNormal(), optimizer=lambda: Adam(learning_rate=0.0002, beta_1=0.5)),
+    Dense((784, 1), (200, 1), initializer=HeNormal(), optimizer=lambda: Adam(learning_rate=0.0002, beta_1=0.5)),
     LeakyRelu(0.2),
     Dropout(0.4),
-    Dense(200, 1, initializer=HeNormal(), optimizer=lambda: Adam(learning_rate=0.0002, beta_1=0.5)),
+    Dense((200, 1), (1, 1), initializer=HeNormal(), optimizer=lambda: Adam(learning_rate=0.0002, beta_1=0.5)),
     Sigmoid(),
     Scalar()
 ])

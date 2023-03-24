@@ -10,9 +10,9 @@ x_train = np.reshape([[0, 0], [0, 1], [1, 0], [1, 1]], (4, 2, 1))
 y_train = np.reshape([0, 1, 1, 0], (4, 1, 1))
 
 network = Network.sequential([
-    Dense(2, 3, initializer=RandomUniform(), optimizer=lambda: Momentum()),
+    Dense((2, 1), (3, 1), initializer=RandomUniform(), optimizer=lambda: Momentum()),
     Tanh(),
-    Dense(3, 1, initializer=RandomUniform(), optimizer=lambda: Momentum()),
+    Dense((3, 1), (1, 1), initializer=RandomUniform(), optimizer=lambda: Momentum()),
     Tanh()
 ])
 

@@ -2,17 +2,19 @@ from collections import deque, defaultdict
 from neglnn.layers.layer import Layer
 from neglnn.utils.types import InputKey
 
+Uid = str
+
 class Graph:
     INPUT = 'input'
 
     def __init__(self):
-        self.parents: dict[Layer, dict[InputKey, Layer]] = defaultdict(dict)
-        self.children: dict[Layer, dict[InputKey, Layer]] = defaultdict(dict)
+        self.parents: dict[Layer, dict[Uid, dict[InputKey, Layer]]] = defaultdict(lambda: defaultdict(dict))
+        self.children: dict[Layer, dict[Uid, dict[InputKey, Layer]]] = defaultdict(lambda: defaultdict(dict))
         self.layers: set[Layer] = set()
 
     def connect(self, parent: Layer, child: Layer, key: InputKey = INPUT):
-        self.parents[child][key] = parent
-        self.children[parent][key] = child
+        self.parents[child][parent.uid][key] = parent
+        self.children[parent][child.uid][key] = child
         self.layers.add(parent)
         self.layers.add(child)
 
@@ -27,7 +29,8 @@ class Graph:
             
             if any(
                 p not in seen and node != source
-                for p in self.parents[node].values()
+                for d in self.parents[node].values()
+                for p in d.values()
             ):
                 queue.insert(1, node)
                 continue
@@ -38,7 +41,7 @@ class Graph:
             if node == sink:
                 break
 
-            queue.extend(self.children[node].values())
+            queue.extend([c for d in self.children[node].values() for c in d.values()])
         return path
 
     def get_sources(self) -> list[Layer]:
@@ -51,6 +54,7 @@ class Graph:
         layers = self.get_ordered_dependencies(source, sink)
         graph = Graph()
         for parent in layers:
-            for key, child in self.children[parent].items():
-                graph.connect(parent, child, key)
+            for _, child_dict in self.children[parent].items():
+                for key, child in child_dict.items():
+                    graph.connect(parent, child, key)
         return graph

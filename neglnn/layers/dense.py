@@ -1,17 +1,15 @@
 import numpy as np
 from neglnn.layers.layer import Layer
 from neglnn.network.graph import Graph
-from neglnn.utils.types import Array, InputKey
+from neglnn.utils.types import Array, Shape2, InputKey
 
 class Dense(Layer):
-    def __init__(self, input_units: int, output_units: int, **kwargs):
-        super().__init__((input_units, 1), (output_units, 1), **kwargs)
-        self.input_units = input_units
-        self.output_units = output_units
+    def __init__(self, input_shape: Shape2, output_shape: Shape2, **kwargs):
+        super().__init__(input_shape=input_shape, output_shape=output_shape, **kwargs)
 
     def initialize_parameters(self):
-        self.weights = self.initializer.get(self.output_units, self.input_units)
-        self.biases = self.initializer.get(self.output_units, 1)
+        self.weights = self.initializer.get(self.output_shape[0], self.input_shape[0])
+        self.biases = self.initializer.get(self.output_shape[0], self.output_shape[1])
 
     def parameters(self) -> list[Array]:
         return [self.weights, self.biases]

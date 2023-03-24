@@ -33,9 +33,9 @@ network = Network.sequential([
     Conv((3, 24, 24), 5, 3, initializer=XavierNormal(), optimizer=lambda: SGD(0.1)),
     Tanh(),
     Flatten((3, 20, 20)),
-    Dense(1200, 20, initializer=XavierNormal(), optimizer=lambda: SGD(0.1)),
+    Dense((1200, 1), (20, 1), initializer=XavierNormal(), optimizer=lambda: SGD(0.1)),
     Tanh(),
-    Dense(20, 10, initializer=XavierNormal(), optimizer=lambda: SGD(0.1)),
+    Dense((20, 1), (10, 1), initializer=XavierNormal(), optimizer=lambda: SGD(0.1)),
     Softmax()
 ])
 

@@ -71,7 +71,8 @@ class Network:
             else:
                 dependencies = {
                     key: computed[parent]
-                    for key, parent in self.graph.parents[layer].items()
+                    for _, parent_dict in self.graph.parents[layer].items()
+                    for key, parent in parent_dict.items()
                 }
             computed[layer] = layer.forward(dependencies)
         return computed[self.sink]
@@ -87,7 +88,8 @@ class Network:
             else:
                 gradient = np.sum([
                     reverse_computed[child][key]
-                    for key, child in self.graph.children[layer].items()
+                    for _, children_dict in self.graph.children[layer].items()
+                    for key, child in children_dict.items()
                 ], axis=0)
 
             reverse_computed[layer] = layer.input_gradient(gradient)

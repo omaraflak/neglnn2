@@ -26,11 +26,11 @@ def load_data(limit: int):
 
 network = Network.sequential([
     Flatten((28, 28)),
-    Dense(784, 50, initializer=XavierNormal(), optimizer=lambda: SGD(0.1)),
+    Dense((784, 1), (50, 1), initializer=XavierNormal(), optimizer=lambda: SGD(0.1)),
     Tanh(),
-    Dense(50, 20, initializer=XavierNormal(), optimizer=lambda: SGD(0.1)),
+    Dense((50, 1), (20, 1), initializer=XavierNormal(), optimizer=lambda: SGD(0.1)),
     Tanh(),
-    Dense(20, 10, initializer=XavierNormal(), optimizer=lambda: SGD(0.1)),
+    Dense((20, 1), (10, 1), initializer=XavierNormal(), optimizer=lambda: SGD(0.1)),
     Softmax()
 ])
 
