@@ -9,6 +9,7 @@ from neglnn.utils.types import Array, InputKey
 class Network:
     @classmethod
     def sequential(cls, layers: list[Layer], initialize_layers: bool = True) -> 'Network':
+        assert len(layers) > 1
         graph = Graph()
         for i in range(len(layers) - 1):
             graph.connect(layers[i], layers[i + 1])
@@ -47,7 +48,7 @@ class Network:
             if verbose:
                 print(f'#{i + 1}/{epochs}\t cost={cost:.10f}')
         return cost
-    
+
     def fit_once(
         self,
         x_train: list[Array],
